@@ -1,0 +1,62 @@
+-- Grow a Garden 2 - Pet Spawner No Visual (Client-Side)
+-- Ejecuta con un executor (Delta, Solara, Wave, etc.)
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+-- Configuración
+local PET_NAME = "Unicorn"  -- Cambia por el nombre de la mascota deseada (ej: "Ice Serpent", "Black Dragon", "Monkey", etc.)
+local AMOUNT = 5            -- Cantidad de mascotas a spawnear
+local INVISIBLE = true      -- Intenta hacerlas no visibles para otros
+
+print("🚀 Grow a Garden 2 Pet Spawner iniciado...")
+
+-- Función principal para spawnear pet
+local function spawnPet(petName, count)
+    for i = 1, count do
+        -- Intento 1: Fire Remote (ajusta según el juego actual)
+        local petRemote = ReplicatedStorage:FindFirstChild("SpawnPet") or 
+                         ReplicatedStorage:FindFirstChild("BuyPet") or
+                         ReplicatedStorage:FindFirstChild("PetEvent") -- Nombres comunes en este juego
+        
+        if petRemote and petRemote:IsA("RemoteEvent") then
+            petRemote:FireServer(petName, INVISIBLE)
+        else
+            -- Fallback: Manipulación directa del inventario (más "no visual")
+            local character = LocalPlayer.Character
+            if character then
+                -- Intento de clonar o añadir pet localmente
+                local petFolder = ReplicatedStorage:FindFirstChild("Pets") or workspace:FindFirstChild("Pets")
+                if petFolder then
+                    local template = petFolder:FindFirstChild(petName)
+                    if template then
+                        local clone = template:Clone()
+                        clone.Parent = character -- O donde se guarden las pets del jugador
+                        clone.Name = petName .. "_Ghost_" .. i
+                        if INVISIBLE then
+                            for _, v in pairs(clone:GetDescendants()) do
+                                if v:IsA("BasePart") or v:IsA("Decal") then
+                                    v.Transparency = 1
+                                end
+                            end
+                        end
+                        print("✅ Spawned ghost pet: " .. petName)
+                    end
+                end
+            end
+        end
+        wait(0.3) -- Evita rate limit
+    end
+end
+
+-- Ejecutar
+spawnPet(PET_NAME, AMOUNT)
+
+-- Bonus: Spawnear múltiples comunes
+local commonPets = {"Bee", "Robin", "Deer", "Monkey"} -- Añade más según el juego
+for _, pet in ipairs(commonPets) do
+    spawnPet(pet, 3)
+end
+
+print("🎉 ¡Mascotas spawneadas! Recarga el juego si no las ves.")
